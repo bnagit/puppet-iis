@@ -45,9 +45,7 @@ define iis::manage_app_pool (
 
   }
 
-  if ($ensure in [
-    'present',
-    'installed']) {
+  if ($ensure in ['present','installed']) {
     exec { "Create-${app_pool_name}":
       command   => "Import-Module WebAdministration; New-Item \"IIS:\\AppPools\\${app_pool_name}\"",
       provider  => powershell,
@@ -129,13 +127,5 @@ define iis::manage_app_pool (
       logoutput => true,
     }
 
-    if ($processAppPoolIdentity) {
-      exec { "RESET TO DEFAULTS - ${app_pool_name}":
-        command   => "[void] [System.Reflection.Assembly]::LoadWithPartialName(\"Microsoft.Web.Administration\");\$iis = New-Object Microsoft.Web.Administration.ServerManager;iis:;\$pool = get-item IIS:\\AppPools\\${app_pool_name};\$pool.processModel.identityType = ${identityEnum};\$pool | set-item;",
-        provider  => powershell,
-        unless    => "[void] [System.Reflection.Assembly]::LoadWithPartialName(\"Microsoft.Web.Administration\");\$iis = New-Object Microsoft.Web.Administration.ServerManager;iis:;\$pool = get-item IIS:\\AppPools\\${app_pool_name};if(\$pool.processModel.identityType -eq \"${identitystring}\"){exit 0;}else{exit 1;}",
-        logoutput => true,
-      }
-    }
   }
 }
