@@ -1,3 +1,4 @@
+#apppool scheduled recycling ['hh:mm:ss','...'] - empty array to clear scheduled recycling on an app pool
 define iis::manage_app_pool (
   $app_pool_name           = $title,
   $enable_32_bit           = false,
