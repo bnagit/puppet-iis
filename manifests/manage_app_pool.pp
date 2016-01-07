@@ -1,3 +1,4 @@
+#apppool periodic cycle - if want to disable app pool cycling on periodic time set $apppoolperiodicrecycle to 0 - it's minutes
 define iis::manage_app_pool (
   $app_pool_name           = $title,
   $enable_32_bit           = false,
