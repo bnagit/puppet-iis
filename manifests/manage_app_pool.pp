@@ -1,4 +1,4 @@
-#
+#apppool identity - caller MUST specify $apppoolusername $apppoolpassword if using "SpecificUser" identity type
 define iis::manage_app_pool (
   $app_pool_name           = $title,
   $enable_32_bit           = false,
