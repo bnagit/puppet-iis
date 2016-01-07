@@ -1,3 +1,4 @@
+#apppool idle timeout - set to 0 will disable this feature in IIS
 define iis::manage_app_pool (
   $app_pool_name           = $title,
   $enable_32_bit           = false,
