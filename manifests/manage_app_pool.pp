@@ -1,4 +1,4 @@
-#apppool idle timeout - set to 0 will disable this feature in IIS
+#apppool max processes - 0 lets iis detect optimal on numa system, not enforcing max (its an int64)
 define iis::manage_app_pool (
   $app_pool_name           = $title,
   $enable_32_bit           = false,
@@ -7,7 +7,7 @@ define iis::manage_app_pool (
   $ensure                  = 'present',
   $start_mode              = 'OnDemand',
   $rapid_fail_protection   = true,
-  $apppoolidletimeoutminutes = undef
+  $apppoolmaxprocesses = undef
   ) {
   validate_bool($enable_32_bit)
   validate_re($managed_runtime_version, ['^(v2\.0|v4\.0)$'])
@@ -16,12 +16,11 @@ define iis::manage_app_pool (
   validate_re($start_mode, '^(OnDemand|AlwaysRunning)$')
   validate_bool($rapid_fail_protection)
 
-if $apppoolidletimeoutminutes != undef {
-  validate_integer($apppoolidletimeoutminutes, 43200, 0) #30 days (43200 min) is max value for this in iis, 0 disables
-  $processAppPoolIdleTimeout = true
-  $idleTimeoutTicks = $apppoolidletimeoutminutes * 600000000
+if $apppoolmaxprocesses != undef{
+  validate_integer($apppoolmaxprocesses, undef, 0) #0 lets iis detect optimal on numa system, not enforcing max (its an int64)
+  $processMaxProcesses = true
 }
-else{$processAppPoolIdleTimeout = false}
+else{$processMaxProcesses = false}
 
   if ($ensure in ['present','installed']) {
     exec { "Create-${app_pool_name}" :
@@ -77,16 +76,17 @@ else{$processAppPoolIdleTimeout = false}
       logoutput => true,
     }
 
-  if($processAppPoolIdleTimeout)
+    if($processMaxProcesses)
   {
-        exec { "App Pool Idle Timeout - ${app_pool_name}":
-        command   => "Import-Module WebAdministration;\$appPoolPath = (\"IIS:\\AppPools\\\" + \"${app_pool_name}\");[TimeSpan]\$ts = ${idleTimeoutTicks};Set-ItemProperty \$appPoolPath -name processModel -value @{idletimeout=\$ts}",
+        exec { "App Pool Max Processes - ${app_pool_name}":
+        command   => "Import-Module WebAdministration;\$appPoolPath = (\"IIS:\\AppPools\\\" + \"${app_pool_name}\");Set-ItemProperty \$appPoolPath -name processModel -value @{maxProcesses=${apppoolmaxprocesses}}",
         provider  => powershell,
-        unless    => "Import-Module WebAdministration;\$appPoolPath = (\"IIS:\\AppPools\\\" + \"${app_pool_name}\");[TimeSpan]\$ts = ${idleTimeoutTicks};if((get-ItemProperty \$appPoolPath -name processModel.idletimeout.value) -ne \$ts){exit 1;}exit 0;",
+        unless    => "Import-Module WebAdministration;\$appPoolPath = (\"IIS:\\AppPools\\\" + \"${app_pool_name}\");if((get-ItemProperty \$appPoolPath -name processModel.maxprocesses.value) -ne ${apppoolmaxprocesses}){exit 1;}exit 0;",
         require   => Exec["Create-${app_pool_name}"],
         logoutput => true,
       }
   }
+
     }
  else {
     exec { "Delete-${app_pool_name}":
