@@ -1,4 +1,4 @@
-#apppool max queue length - max queue length must be set 10 >= n <= 65535
+#apppool periodic cycle - if want to disable app pool cycling on periodic time set $apppoolperiodicrecycle to 0 - it's minutes
 define iis::manage_app_pool (
   $app_pool_name           = $title,
   $enable_32_bit           = false,
@@ -7,7 +7,7 @@ define iis::manage_app_pool (
   $ensure                  = 'present',
   $start_mode              = 'OnDemand',
   $rapid_fail_protection   = true,
-  $apppoolmaxqueuelength = undef
+  $apppoolrecycleperiodicminutes = undef
   ) {
   validate_bool($enable_32_bit)
   validate_re($managed_runtime_version, ['^(v2\.0|v4\.0)$'])
@@ -16,11 +16,18 @@ define iis::manage_app_pool (
   validate_re($start_mode, '^(OnDemand|AlwaysRunning)$')
   validate_bool($rapid_fail_protection)
 
-if $apppoolmaxqueuelength != undef{
-  validate_integer($apppoolmaxqueuelength, 65535, 10) #app pool max queue length must be set 10 >= n <= 65535
-  $processMaxQueueLength = true
+if $apppoolrecycleperiodicminutes != undef {
+ if (!empty($apppoolrecycleperiodicminutes)) {
+    validate_integer($apppoolrecycleperiodicminutes, 15372286728, 0) # powershell $([int64]::MaxValue) / 600000000, we're not dealing with negative
+    $periodicticks = $apppoolrecycleperiodicminutes * 600000000
+    $processperiodictimes = true
+  }
+  else
+  {
+    $processperiodictimes = false
+  }
 }
-else{$processMaxQueueLength = false}
+else{$processperiodictimes = false}
 
   if ($ensure in ['present','installed']) {
     exec { "Create-${app_pool_name}" :
@@ -76,16 +83,16 @@ else{$processMaxQueueLength = false}
       logoutput => true,
     }
 
-    if($processMaxQueueLength)
-  {
-        exec { "App Pool Max Queue Length - ${app_pool_name}":
-        command   => "Import-Module WebAdministration;\$appPoolPath = (\"IIS:\\AppPools\\\" + \"${app_pool_name}\");Set-ItemProperty \$appPoolPath queueLength ${apppoolmaxqueuelength};",
+        if($processperiodictimes)
+    {
+        exec { "App Pool Recycle Periodic - ${app_pool_name} - ${apppoolrecycleperiodicminutes}":
+        command   => "\$appPoolName = \"${app_pool_name}\";[TimeSpan] \$ts = ${periodicticks};Import-Module WebAdministration;\$appPoolPath = (\"IIS:\\AppPools\\\" + \$appPoolName);Get-ItemProperty \$appPoolPath -Name recycling.periodicRestart.time;Set-ItemProperty \$appPoolPath -Name recycling.periodicRestart.time -value \$ts;",
         provider  => powershell,
-        unless    => "Import-Module WebAdministration;\$appPoolPath = (\"IIS:\\AppPools\\\" + \"${app_pool_name}\");if((get-ItemProperty \$appPoolPath).queuelength -ne ${apppoolmaxqueuelength}){exit 1;}exit 0;",
+        unless    => "\$appPoolName = \"${app_pool_name}\";[TimeSpan] \$ts = ${periodicticks};Import-Module WebAdministration;\$appPoolPath = (\"IIS:\\AppPools\\\" + \$appPoolName);if((Get-ItemProperty \$appPoolPath -Name recycling.periodicRestart.time.value) -ne \$ts.Ticks){exit 1;}exit 0;",
         require   => Exec["Create-${app_pool_name}"],
         logoutput => true,
       }
-  }
+    }
 
     }
  else {
