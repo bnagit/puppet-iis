@@ -25,7 +25,7 @@ validate_re($loggingoption, '^(Time|Requests|Schedule|Memory|IsapiUnhealthy|OnDe
     }
 
     $loggingstring    = join($apppoolrecyclelogging, ',') # Time,Requests
-    $tempstr               = regsubst($loggingstring, '([,]+)', '\"\1\"', 'G') # Time","Requests
+    $tempstr               = regsubst($loggingstring, '([,]+)', '\"1\"', 'G') # Time","Requests
     $fixedloggingstring      = "\"${tempstr}\"" # @"Time","Requests" as literal - we put this into powershell array constructor in
                                               # execs
 
