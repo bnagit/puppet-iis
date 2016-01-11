@@ -7,9 +7,9 @@ define iis::manage_app_pool (
   $ensure                  = 'present',
   $start_mode              = 'OnDemand',
   $rapid_fail_protection   = true,
-  $apppoolidentitytype,
-  $apppoolusername,
-  $apppooluserpw) {
+  $apppoolidentitytype = undef,
+  $apppoolusername = undef,
+  $apppooluserpw = undef) {
   validate_bool($enable_32_bit)
   validate_re($managed_runtime_version, ['^(v2\.0|v4\.0)$'])
   validate_re($managed_pipeline_mode, ['^(Integrated|Classic)$'])
