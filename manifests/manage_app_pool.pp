@@ -1,4 +1,4 @@
-#apppool identity - caller MUST specify $apppoolusername $apppoolpassword if using "SpecificUser" identity type
+# apppool identity - caller MUST specify $apppoolusername $apppoolpassword if using "SpecificUser" identity type
 define iis::manage_app_pool (
   $app_pool_name           = $title,
   $enable_32_bit           = false,
@@ -13,16 +13,20 @@ define iis::manage_app_pool (
   validate_bool($enable_32_bit)
   validate_re($managed_runtime_version, ['^(v2\.0|v4\.0)$'])
   validate_re($managed_pipeline_mode, ['^(Integrated|Classic)$'])
-  validate_re($ensure, '^(present|installed|absent|purged)$', 'ensure must be one of \'present\', \'installed\', \'absent\', \'purged\'')
+  validate_re($ensure, '^(present|installed|absent|purged)$', 'ensure must be one of \'present\', \'installed\', \'absent\', \'purged\''
+  )
   validate_re($start_mode, '^(OnDemand|AlwaysRunning)$')
   validate_bool($rapid_fail_protection)
 
   # keeping new stuff optional for backwards compatibility
   if $apppoolidentitytype != undef {
+    validate_re($apppoolidentitytype, ['^(0|1|2|3|4|LocalSystem|LocalService|NetworkService|SpecificUser|ApplicationPoolIdentity)$'
+      ], 'identitytype must be one of \'0\', \'1\',\'2\',\'3\',\'4\',\'LocalSystem\',\'LocalService\',\'NetworkService\',\'SpecificUser\',\'ApplicationPoolIdentity\''
+      )
 
-    validate_re($apppoolidentitytype, ['^(0|1|2|3|4|LocalSystem|LocalService|NetworkService|SpecificUser|ApplicationPoolIdentity)$'], 'identitytype must be one of \'0\', \'1\',\'2\',\'3\',\'4\',\'LocalSystem\',\'LocalService\',\'NetworkService\',\'SpecificUser\',\'ApplicationPoolIdentity\'')
-
-    if ($apppoolidentitytype in ['3','SpecificUser']) {
+    if ($apppoolidentitytype in [
+      '3',
+      'SpecificUser']) {
       if ($apppoolusername == undef) or (empty($apppoolusername)) {
         fail('attempt set app pool identity to SpecificUser null or zero length $apppoolusername param')
       }
@@ -33,19 +37,39 @@ define iis::manage_app_pool (
     }
 
     case $apppoolidentitytype {
-      '0', 'LocalSystem'             : { $identitystring = 'LocalSystem', $identityEnum = '0' }
-      '1', 'LocalService'            : { $identitystring = 'LocalService', $identityEnum = '1' }
-      '2', 'NetworkService'          : { $identitystring = 'NetworkService', $identityEnum = '2' }
-      '3', 'SpecificUser'            : { $identitystring = 'SpecificUser', $identityEnum = '3' }
-      '4', 'ApplicationPoolIdentity' : { $identitystring = 'ApplicationPoolIdentity', $identityEnum = '4' }
-      default : { $identitystring = 'ApplicationPoolIdentity', $identityEnum = '4' }
+      '0', 'LocalSystem'             : {
+        $identitystring = 'LocalSystem'
+        $identityEnum   = '0'
+      }
+      '1', 'LocalService'            : {
+        $identitystring = 'LocalService'
+        $identityEnum   = '1'
+      }
+      '2', 'NetworkService'          : {
+        $identitystring = 'NetworkService'
+        $identityEnum   = '2'
+      }
+      '3', 'SpecificUser'            : {
+        $identitystring = 'SpecificUser'
+        $identityEnum   = '3'
+      }
+      '4', 'ApplicationPoolIdentity' : {
+        $identitystring = 'ApplicationPoolIdentity'
+        $identityEnum   = '4'
+      }
+      default : {
+        $identitystring = 'ApplicationPoolIdentity'
+        $identityEnum   = '4'
+      }
     }
 
     $processAppPoolIdentity = true
 
   }
 
-  if ($ensure in ['present','installed']) {
+  if ($ensure in [
+    'present',
+    'installed']) {
     exec { "Create-${app_pool_name}":
       command   => "Import-Module WebAdministration; New-Item \"IIS:\\AppPools\\${app_pool_name}\"",
       provider  => powershell,
