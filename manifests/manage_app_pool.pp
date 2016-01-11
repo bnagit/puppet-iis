@@ -22,7 +22,7 @@ define iis::manage_app_pool (
       validate_re($time, '\b\d{2}:\d{2}:\d{2}\b', "${time} bad - time format hh:mm:ss in array")
     }
     $restarttimesstring    = join($apppoolrecycleschedule, ',') # 01:00:00,02:00:00
-    $tempstr               = regsubst($restarttimesstring, '([,]+)', '\"\1\"', 'G') # 01:00:00"."02:00:00
+    $tempstr               = regsubst($restarttimesstring, '([,]+)', "\"\\1\"", 'G') # 01:00:00"."02:00:00
     $fixedtimesstring      = "\"${tempstr}\"" # @"01:00:00","02:00:00" as literal - we put this into powershell array constructor in
                                               # execs
     $processscheduledtimes = true
