@@ -9,7 +9,7 @@ define iis::manage_app_pool (
   $rapid_fail_protection   = true,
   $apppoolidentitytype,
   $apppoolusername,
-  $apppooluserpw,) {
+  $apppooluserpw) {
   validate_bool($enable_32_bit)
   validate_re($managed_runtime_version, ['^(v2\.0|v4\.0)$'])
   validate_re($managed_pipeline_mode, ['^(Integrated|Classic)$'])
@@ -33,12 +33,30 @@ define iis::manage_app_pool (
     }
 
     case $apppoolidentitytype {
-      '0', 'LocalSystem'             : { $identitystring = 'LocalSystem', $identityEnum = '0' }
-      '1', 'LocalService'            : { $identitystring = 'LocalService', $identityEnum = '1' }
-      '2', 'NetworkService'          : { $identitystring = 'NetworkService', $identityEnum = '2' }
-      '3', 'SpecificUser'            : { $identitystring = 'SpecificUser', $identityEnum = '3' }
-      '4', 'ApplicationPoolIdentity' : { $identitystring = 'ApplicationPoolIdentity', $identityEnum = '4' }
-      default : { $identitystring = 'ApplicationPoolIdentity', $identityEnum = '4' }
+      '0', 'LocalSystem'             : {
+        $identitystring = 'LocalSystem'
+        $identityEnum   = '0'
+      }
+      '1', 'LocalService'            : {
+        $identitystring = 'LocalService'
+        $identityEnum   = '1'
+      }
+      '2', 'NetworkService'          : {
+        $identitystring = 'NetworkService'
+        $identityEnum   = '2'
+      }
+      '3', 'SpecificUser'            : {
+        $identitystring = 'SpecificUser'
+        $identityEnum   = '3'
+      }
+      '4', 'ApplicationPoolIdentity' : {
+        $identitystring = 'ApplicationPoolIdentity'
+        $identityEnum   = '4'
+      }
+      default : {
+        $identitystring = 'ApplicationPoolIdentity'
+        $identityEnum   = '4'
+      }
     }
 
     $processAppPoolIdentity = true
