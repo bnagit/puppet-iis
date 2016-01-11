@@ -1,4 +1,4 @@
-#apppool max processes - 0 lets iis detect optimal on numa system, not enforcing max (its an int64)
+#apppool max queue length - max queue length must be set 10 >= n <= 65535
 define iis::manage_app_pool (
   $app_pool_name           = $title,
   $enable_32_bit           = false,
@@ -7,7 +7,7 @@ define iis::manage_app_pool (
   $ensure                  = 'present',
   $start_mode              = 'OnDemand',
   $rapid_fail_protection   = true,
-  $apppoolmaxprocesses = undef
+  $apppoolmaxqueuelength = undef
   ) {
   validate_bool($enable_32_bit)
   validate_re($managed_runtime_version, ['^(v2\.0|v4\.0)$'])
@@ -16,11 +16,11 @@ define iis::manage_app_pool (
   validate_re($start_mode, '^(OnDemand|AlwaysRunning)$')
   validate_bool($rapid_fail_protection)
 
-if $apppoolmaxprocesses != undef{
-  validate_integer($apppoolmaxprocesses, undef, 0) #0 lets iis detect optimal on numa system, not enforcing max (its an int64)
-  $processMaxProcesses = true
+if $apppoolmaxqueuelength != undef{
+  validate_integer($apppoolmaxqueuelength, 65535, 10) #app pool max queue length must be set 10 >= n <= 65535
+  $processMaxQueueLength = true
 }
-else{$processMaxProcesses = false}
+else{$processMaxQueueLength = false}
 
   if ($ensure in ['present','installed']) {
     exec { "Create-${app_pool_name}" :
@@ -76,12 +76,12 @@ else{$processMaxProcesses = false}
       logoutput => true,
     }
 
-    if($processMaxProcesses)
+    if($processMaxQueueLength)
   {
-        exec { "App Pool Max Processes - ${app_pool_name}":
-        command   => "Import-Module WebAdministration;\$appPoolPath = (\"IIS:\\AppPools\\\" + \"${app_pool_name}\");Set-ItemProperty \$appPoolPath -name processModel -value @{maxProcesses=${apppoolmaxprocesses}}",
+        exec { "App Pool Max Queue Length - ${app_pool_name}":
+        command   => "Import-Module WebAdministration;\$appPoolPath = (\"IIS:\\AppPools\\\" + \"${app_pool_name}\");Set-ItemProperty \$appPoolPath queueLength ${apppoolmaxqueuelength};",
         provider  => powershell,
-        unless    => "Import-Module WebAdministration;\$appPoolPath = (\"IIS:\\AppPools\\\" + \"${app_pool_name}\");if((get-ItemProperty \$appPoolPath -name processModel.maxprocesses.value) -ne ${apppoolmaxprocesses}){exit 1;}exit 0;",
+        unless    => "Import-Module WebAdministration;\$appPoolPath = (\"IIS:\\AppPools\\\" + \"${app_pool_name}\");if((get-ItemProperty \$appPoolPath).queuelength -ne ${apppoolmaxqueuelength}){exit 1;}exit 0;",
         require   => Exec["Create-${app_pool_name}"],
         logoutput => true,
       }
@@ -97,3 +97,4 @@ else{$processMaxProcesses = false}
     }
   }
 }
+
