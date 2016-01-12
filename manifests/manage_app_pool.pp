@@ -62,6 +62,8 @@ define iis::manage_app_pool (
     $processAppPoolIdentity = true
 
   }
+  else
+  {$processAppPoolIdentity = false}
 
   if ($ensure in ['present','installed']) {
     exec { "Create-${app_pool_name}":
