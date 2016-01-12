@@ -17,15 +17,9 @@ define iis::manage_app_pool (
   validate_bool($rapid_fail_protection)
 
 if $apppoolrecycleperiodicminutes != undef {
- if (!empty($apppoolrecycleperiodicminutes)) {
     validate_integer($apppoolrecycleperiodicminutes, 15372286728, 0) # powershell $([int64]::MaxValue) / 600000000, we're not dealing with negative
     $periodicticks = $apppoolrecycleperiodicminutes * 600000000
     $processperiodictimes = true
-  }
-  else
-  {
-    $processperiodictimes = false
-  }
 }
 else{$processperiodictimes = false}
 
