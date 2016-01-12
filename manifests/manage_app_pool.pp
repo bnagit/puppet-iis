@@ -91,15 +91,9 @@ if $apppoolmaxqueuelength != undef{
 else{$processMaxQueueLength = false}
 
 if $apppoolrecycleperiodicminutes != undef {
- if (!empty($apppoolrecycleperiodicminutes)) {
     validate_integer($apppoolrecycleperiodicminutes, 15372286728, 0) # powershell $([int64]::MaxValue) / 600000000, we're not dealing with negative
     $periodicticks = $apppoolrecycleperiodicminutes * 600000000
     $processperiodictimes = true
-  }
-  else
-  {
-    $processperiodictimes = false
-  }
 }
 else{$processperiodictimes = false}
 
