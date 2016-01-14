@@ -100,9 +100,13 @@ else{$processperiodictimes = false}
 if $apppoolrecyclelogging != undef {
   if(!empty($apppoolrecyclelogging))
   {
-    $apppoolrecyclelogging.each |String $loggingoption| {
-validate_re($loggingoption, '^(Time|Requests|Schedule|Memory|IsapiUnhealthy|OnDemand|ConfigChange|PrivateMemory)$', "bad ${$loggingoption} - [\$apppoolrecyclelogging] values must be one of \'Time\',\'Requests\',\'Schedule\',\'Memory\',\'IsapiUnhealthy\',\'OnDemand\',\'ConfigChange\',\'PrivateMemory\'")
-    }
+#      $apppoolrecyclelogging.each |String $loggingoption| {
+#        validate_re($loggingoption, '^(Time|Requests|Schedule|Memory|IsapiUnhealthy|OnDemand|ConfigChange|PrivateMemory)$', "bad ${$loggingoption} - [\$apppoolrecyclelogging] values must be one of \'Time\',\'Requests\',\'Schedule\',\'Memory\',\'IsapiUnhealthy\',\'OnDemand\',\'ConfigChange\',\'PrivateMemory\'")
+#      }
+
+      $validates = is_array_in_array($apppoolrecyclelogging,['Time','Requests','Schedule','Memory','IsapiUnhealthy','OnDemand','ConfigChange','PrivateMemory'])
+      if(!$validates)
+      {fail("[\$apppoolrecyclelogging] values must be in [\'Time\',\'Requests\',\'Schedule\',\'Memory\',\'IsapiUnhealthy\',\'OnDemand\',\'ConfigChange\',\'PrivateMemory\']")}
 
     $loggingstring    = join($apppoolrecyclelogging, ',') # Time,Requests
     $fixedloggingstring      = "\"${loggingstring}\"" # @"Time,Requests" as literal - we put this into powershell array constructor in

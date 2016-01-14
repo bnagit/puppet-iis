@@ -11,4 +11,3 @@ module Puppet::Parser::Functions
     end
     return isvalid
   end
-end
