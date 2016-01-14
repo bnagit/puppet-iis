@@ -108,8 +108,9 @@ if $apppoolrecyclelogging != undef {
       if(!$validates)
       {fail("[\$apppoolrecyclelogging] values must be in [\'Time\',\'Requests\',\'Schedule\',\'Memory\',\'IsapiUnhealthy\',\'OnDemand\',\'ConfigChange\',\'PrivateMemory\']")}
 
-    $loggingstring    = join($apppoolrecyclelogging, ',') # Time,Requests
-    $fixedloggingstring      = "\"${loggingstring}\"" # @"Time,Requests" as literal - we put this into powershell array constructor in
+    $loggingstring           = join($apppoolrecyclelogging, ',') # Time,Requests
+    $templogstr                 = regsubst($loggingstring, '([,]+)', "\"\\1\"", 'G')
+    $fixedloggingstring      = "\"${templogstr}\"" # @"Time,Requests" as literal - we put this into powershell array constructor in
                                                       # execs
 
     $processAppPoolRecycleLogging = true
@@ -128,8 +129,8 @@ else
       validate_re($time, '\b\d{2}:\d{2}:\d{2}\b', "${time} bad - time format hh:mm:ss in array")
     }
     $restarttimesstring    = join($apppoolrecycleschedule, ',') # 01:00:00,02:00:00
-    $tempstr               = regsubst($restarttimesstring, '([,]+)', "\"\\1\"", 'G') # 01:00:00"."02:00:00
-    $fixedtimesstring      = "\"${tempstr}\"" # @"01:00:00","02:00:00" as literal - we put this into powershell array constructor in
+    $temptimestr           = regsubst($restarttimesstring, '([,]+)', "\"\\1\"", 'G') # 01:00:00"."02:00:00
+    $fixedtimesstring      = "\"${temptimestr}\"" # @"01:00:00","02:00:00" as literal - we put this into powershell array constructor in
                                               # execs
     $processscheduledtimes = true
   }
