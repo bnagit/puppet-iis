@@ -10,7 +10,7 @@ define iis::manage_app_pool(
 ){
 
   validate_bool($enable_32_bit)
-  validate_re($managed_runtime_version, ['^(v2\.0|v4\.0)$'])
+  validate_re($managed_runtime_version, ['^(v2\.0|v4\.0|v4\.5)$'])
   validate_re($managed_pipeline_mode, ['^(Integrated|Classic)$'])
   validate_re($ensure, '^(present|installed|absent|purged)$', 'ensure must be one of \'present\', \'installed\', \'absent\', \'purged\'')
   validate_re($start_mode, '^(OnDemand|AlwaysRunning)$')
@@ -23,7 +23,7 @@ define iis::manage_app_pool(
       onlyif    => "Import-Module WebAdministration; if((Test-Path \"IIS:\\AppPools\\${app_pool_name}\")) { exit 1 } else { exit 0 }",
       logoutput => true,
     }
-    
+
     exec { "StartMode-${app_pool_name}" :
       command   => "Import-Module WebAdministration; Set-ItemProperty \"IIS:\\AppPools\\${app_pool_name}\" startMode ${start_mode}",
       provider  => powershell,
@@ -39,7 +39,7 @@ define iis::manage_app_pool(
       require   => Exec["Create-${app_pool_name}"],
       logoutput => true,
     }
-    
+
     exec { "Framework-${app_pool_name}" :
       command   => "Import-Module WebAdministration; Set-ItemProperty \"IIS:\\AppPools\\${app_pool_name}\" managedRuntimeVersion ${managed_runtime_version}",
       provider  => powershell,
