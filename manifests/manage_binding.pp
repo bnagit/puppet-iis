@@ -47,16 +47,7 @@ define iis::manage_binding($site_name, $protocol, $port, $host_header = '', $ip_
 
       exec { "Attach-Certificate-${title}":
         command   => "C:\\temp\\create-${name}.ps1",
-        onlyif    => "Import-Module WebAdministration;
-                      if((Test-Path IIS:\\SslBindings\\\'${ip_address}\'!\'${port}\') -Or (Test-Path IIS:\\SslBindings\\\'${ip_address}\'!\'${port}\'!$\'{host_header}\'));
-                      {;
-                        $site = Get-Website | Where-Object { $_.Name -eq \'${site_name}\' };
-                        $store = \'${store}\';
-                        $certsAttachedToSite = Get-ChildItem IIS:\\SSLBindings | ? { $site | Select-Object { $_ -contains $_.Sites.Value }} | % { $_.Thumbprint };
-                        $certificate = Get-ChildItem CERT:\\LocalMachine\\$store | ? { $certsAttachedToSite -contains $_.Thumbprint} | Where-Object { $_.Thumbprint -eq \'${$certificate_thumbprint}\' };
-	                      if ($certificate -ne $null ){exit 1};
-                        else {exit 0};};
-                      else {exit 0}",
+        onlyif    => "C:\\temp\\inspect-${name}.ps1",
         require   => [File["inspect-${title}-certificate.ps1"], File["create-${title}-certificate.ps1"]],
         provider  => powershell,
         logoutput => true,
