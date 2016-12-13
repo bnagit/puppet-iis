@@ -5,21 +5,14 @@ if((Test-Path IIS:\SslBindings\<%= @ip_address %>!<%= @port %>) -Or (Test-Path I
     $store = "<%= @store %>"
     $certsAttachedToSite = Get-ChildItem IIS:\SSLBindings | ? { $site | Select-Object { $_ -contains $_.Sites.Value }} | % { $_.Thumbprint }
     $certificate = Get-ChildItem CERT:\LocalMachine\$store | ? { $certsAttachedToSite -contains $_.Thumbprint} | Where-Object { $_.Thumbprint -eq "<%= @certificate_thumbprint %>" }
-    add-content c:\temp\output.txt $site
-    add-content c:\temp\output.txt $store
-    add-content c:\temp\output.txt $certsAttachedToSite
-    add-content c:\temp\output.txt $certificate
     if ($certificate -ne $null ){
-        add-content c:\temp\output.txt "exit 1"
         exit 1
     }
     else {
         exit 0
-        add-content c:\temp\output.txt "exit 0 in cert loop"
     }
 }
 else {
     exit 0
-        add-content c:\temp\output.txt "exit 0 in bindings loop"
 }
 
